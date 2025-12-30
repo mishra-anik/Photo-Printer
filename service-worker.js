@@ -1,7 +1,14 @@
 self.addEventListener("install", e => {
   e.waitUntil(
     caches.open("passport-crop-v1").then(c =>
-      c.addAll(["./", "./index.html"])
+      c.addAll([
+        "./",
+        "./index.html",
+        "./manifest.json",
+        "./service-worker.js",
+        "./icon-192.png",
+        "./icon-512.png"
+      ])
     )
   );
 });
