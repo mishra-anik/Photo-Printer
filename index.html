@@ -28,6 +28,7 @@
       width: 100%;
     }
 
+    /* Desktop view - centered */
     @media (min-width: 768px) {
       main {
         max-width: 600px;
@@ -36,7 +37,6 @@
         min-height: 100vh;
       }
     }
-
     #cropContainer {
       position: relative;
       width: 320px;
@@ -65,11 +65,27 @@
       position: absolute;
     }
 
-    .tl { left: -7px; top: -7px; }
-    .tr { right: -7px; top: -7px; }
-    .bl { left: -7px; bottom: -7px; }
-    .br { right: -7px; bottom: -7px; }
+    .tl {
+      left: -7px;
+      top: -7px;
+    }
 
+    .tr {
+      right: -7px;
+      top: -7px;
+    }
+
+    .bl {
+      left: -7px;
+      bottom: -7px;
+    }
+
+    .br {
+      right: -7px;
+      bottom: -7px;
+    }
+
+    /* PRINT AREA */
     #printArea {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(35mm, 1fr));
@@ -99,7 +115,8 @@
       object-fit: cover;
     }
 
-    input, button {
+    input,
+    button {
       font-size: 1rem;
       padding: 0.75rem 1.5rem;
       border-radius: 0.5rem;
@@ -115,17 +132,21 @@
       min-width: 44px;
     }
 
-    input:hover, button:hover {
+    input:hover,
+    button:hover {
       transform: translateY(-2px);
       box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
     }
 
-    input:active, button:active {
+    input:active,
+    button:active {
       transform: translateY(0);
     }
 
+    /* Mobile button layout */
     @media (max-width: 767px) {
-      input, button {
+      input,
+      button {
         width: 100%;
         max-width: 320px;
         margin-right: 0 !important;
@@ -133,15 +154,12 @@
       }
     }
 
+    /* Desktop button layout */
     @media (min-width: 768px) {
-      input, button {
+      input,
+      button {
         margin-right: 10px;
       }
-    }
-
-    /* PRINT STYLES - ONLY IMAGE PAGE */
-    .printOnly {
-      display: none;
     }
 
     @media print {
@@ -154,22 +172,24 @@
         visibility: hidden;
       }
 
-      .printOnly, .printOnly * {
+      #printArea,
+      #printArea * {
         visibility: visible;
       }
 
-      .printOnly {
+      #printArea {
+        position: absolute;
+        top: 0;
+        left: 0;
         display: grid !important;
         grid-template-columns: repeat(6, 35mm) !important;
         gap: 0.4rem !important;
         width: auto !important;
-        padding-top: 10mm !important; /* top gap */
-        padding-left: 5mm !important;
-        padding-right: 5mm !important;
-        margin: 0 auto !important;
+        margin: 0 !important;
+        padding: 0.2rem !important;
       }
 
-      .printOnly .photo {
+      .photo {
         width: 35mm !important;
         height: 45mm !important;
         object-fit: cover !important;
@@ -180,7 +200,8 @@
 
 <body>
 
-<main>
+  <main>
+
   <input type="file" id="upload" accept="image/*"><br><br>
 
   <div id="cropContainer">
@@ -197,119 +218,134 @@
   <button id="generate">Generate</button>
   <button onclick="window.print()">Print</button>
 
-  <div class="printOnly" id="printArea"></div>
+  <div id="printArea"></div>
 
-</main>
+  </main>
 
-<script>
-const upload = document.getElementById("upload");
-const sourceImg = document.getElementById("sourceImg");
-const cropBox = document.getElementById("cropBox");
-const printArea = document.getElementById("printArea");
-const ratio = 35 / 45;
+  <script>
+    const upload = document.getElementById("upload");
+    const sourceImg = document.getElementById("sourceImg");
+    const cropBox = document.getElementById("cropBox");
+    const printArea = document.getElementById("printArea");
+    const ratio = 35 / 45;
 
-let action = null, startX, startY, startW;
+    let action = null, startX, startY, startW;
 
-function getPoint(e){ return e.touches ? e.touches[0] : e; }
+    function getPoint(e) {
+      return e.touches ? e.touches[0] : e;
+    }
 
-upload.onchange = () => {
-  sourceImg.src = URL.createObjectURL(upload.files[0]);
-  sourceImg.onload = () => {
-    cropBox.style.width = "120px";
-    cropBox.style.height = "155px";
-    cropBox.style.left = "100px";
-    cropBox.style.top = "30px";
-  };
-};
+    upload.onchange = () => {
+      sourceImg.src = URL.createObjectURL(upload.files[0]);
+      sourceImg.onload = () => {
+        cropBox.style.width = "120px";
+        cropBox.style.height = "155px";
+        cropBox.style.left = "100px";
+        cropBox.style.top = "30px";
+      };
+    };
 
-cropBox.addEventListener("mousedown", startMove);
-cropBox.addEventListener("touchstart", startMove);
+    /* MOVE */
+    cropBox.addEventListener("mousedown", startMove);
+    cropBox.addEventListener("touchstart", startMove);
 
-function startMove(e){
-  if(e.target.classList.contains("handle")) return;
-  action="move";
-  const p=getPoint(e);
-  startX=p.clientX;
-  startY=p.clientY;
-}
+    function startMove(e) {
+      if (e.target.classList.contains("handle")) return;
+      action = "move";
+      const p = getPoint(e);
+      startX = p.clientX;
+      startY = p.clientY;
+    }
 
-document.querySelectorAll(".handle").forEach(h=>{
-  h.addEventListener("mousedown", e=>startResize(e,h));
-  h.addEventListener("touchstart", e=>startResize(e,h));
-});
+    /* RESIZE */
+    document.querySelectorAll(".handle").forEach(h => {
+      h.addEventListener("mousedown", e => startResize(e, h));
+      h.addEventListener("touchstart", e => startResize(e, h));
+    });
 
-function startResize(e,h){
-  e.stopPropagation();
-  action="resize";
-  startW=cropBox.offsetWidth;
-  const p=getPoint(e);
-  startX=p.clientX;
-}
+    function startResize(e, h) {
+      e.stopPropagation();
+      action = "resize";
+      startW = cropBox.offsetWidth;
+      const p = getPoint(e);
+      startX = p.clientX;
+    }
 
-window.addEventListener("mousemove", move);
-window.addEventListener("touchmove", move);
+    window.addEventListener("mousemove", move);
+    window.addEventListener("touchmove", move);
 
-function move(e){
-  if(!action) return;
-  const p=getPoint(e);
+    function move(e) {
+      if (!action) return;
+      const p = getPoint(e);
 
-  if(action==="move"){
-    let newLeft=cropBox.offsetLeft+(p.clientX-startX);
-    let newTop=cropBox.offsetTop+(p.clientY-startY);
+      if (action === "move") {
+        let newLeft = cropBox.offsetLeft + (p.clientX - startX);
+        let newTop = cropBox.offsetTop + (p.clientY - startY);
 
-    const maxLeft=sourceImg.offsetWidth-cropBox.offsetWidth;
-    const maxTop=sourceImg.offsetHeight-cropBox.offsetHeight;
+        // Constrain within image bounds
+        const maxLeft = sourceImg.offsetWidth - cropBox.offsetWidth;
+        const maxTop = sourceImg.offsetHeight - cropBox.offsetHeight;
 
-    newLeft=Math.max(0,Math.min(newLeft,maxLeft));
-    newTop=Math.max(0,Math.min(newTop,maxTop));
+        newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+        newTop = Math.max(0, Math.min(newTop, maxTop));
 
-    cropBox.style.left=newLeft+"px";
-    cropBox.style.top=newTop+"px";
-    startX=p.clientX;
-    startY=p.clientY;
-  }
+        cropBox.style.left = newLeft + "px";
+        cropBox.style.top = newTop + "px";
+        startX = p.clientX;
+        startY = p.clientY;
+      }
 
-  if(action==="resize"){
-    let newW=startW+(p.clientX-startX);
-    newW=Math.max(60,newW);
-    const maxW=sourceImg.offsetWidth-cropBox.offsetLeft;
-    newW=Math.min(newW,maxW);
+      if (action === "resize") {
+        let newW = startW + (p.clientX - startX);
+        
+        // Constrain minimum width
+        newW = Math.max(60, newW);
+        
+        // Constrain maximum width (fit within image)
+        const maxW = sourceImg.offsetWidth - cropBox.offsetLeft;
+        newW = Math.min(newW, maxW);
+        
+        // Check height constraint
+        const newH = newW / ratio;
+        const maxH = sourceImg.offsetHeight - cropBox.offsetTop;
+        if (newH > maxH) {
+          newW = maxH * ratio;
+        }
+        
+        cropBox.style.width = newW + "px";
+        cropBox.style.height = newW / ratio + "px";
+      }
+    }
 
-    const newH=newW/ratio;
-    const maxH=sourceImg.offsetHeight-cropBox.offsetTop;
-    if(newH>maxH) newW=maxH*ratio;
+    window.addEventListener("mouseup", () => action = null);
+    window.addEventListener("touchend", () => action = null);
 
-    cropBox.style.width=newW+"px";
-    cropBox.style.height=newW/ratio+"px";
-  }
-}
+    /* GENERATE */
+    document.getElementById("generate").onclick = () => {
+      printArea.innerHTML = "";
 
-window.addEventListener("mouseup",()=>action=null);
-window.addEventListener("touchend",()=>action=null);
+      const sx = sourceImg.naturalWidth / sourceImg.width;
+      const sy = sourceImg.naturalHeight / sourceImg.height;
 
-document.getElementById("generate").onclick = ()=>{
-  printArea.innerHTML="";
-  const sx=sourceImg.naturalWidth/sourceImg.width;
-  const sy=sourceImg.naturalHeight/sourceImg.height;
+      const x = cropBox.offsetLeft * sx;
+      const y = cropBox.offsetTop * sy;
+      const w = cropBox.offsetWidth * sx;
+      const h = cropBox.offsetHeight * sy;
 
-  const x=cropBox.offsetLeft*sx;
-  const y=cropBox.offsetTop*sy;
-  const w=cropBox.offsetWidth*sx;
-  const h=cropBox.offsetHeight*sy;
+      const c = document.createElement("canvas");
+      c.width = 413;
+      c.height = 531;
+      c.getContext("2d").drawImage(sourceImg, x, y, w, h, 0, 0, 413, 531);
 
-  const c=document.createElement("canvas");
-  c.width=413;
-  c.height=531;
-  c.getContext("2d").drawImage(sourceImg,x,y,w,h,0,0,413,531);
-
-  for(let i=0;i<6;i++){
-    const img=document.createElement("img");
-    img.src=c.toDataURL("image/jpeg",1);
-    img.className="photo";
-    printArea.appendChild(img);
-  }
-};
-</script>
+      for (let i = 0; i < 6; i++) {
+        const img = document.createElement("img");
+        img.src = c.toDataURL("image/jpeg", 1);
+        img.className = "photo";
+        printArea.appendChild(img);
+      }
+    };
+  </script>
 
 </body>
+
 </html>
