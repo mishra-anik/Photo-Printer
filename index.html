@@ -1,183 +1,351 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<meta charset="UTF-8">
-<title>Passport Photo Printer</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Passport Photo Crop</title>
 
-<style>
-body { font-family: Arial; margin: 10px; }
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-#cropContainer {
-  position: relative;
-  width: 320px;
-}
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+      min-height: 100vh;
+    }
 
-#sourceImg {
-  width: 100%;
-  display: block;
-}
+    main {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+      width: 100%;
+    }
 
-#cropBox {
-  position: absolute;
-  border: 2px solid red;
-  aspect-ratio: 35 / 45;
-  touch-action: none;
-}
+    /* Desktop view - centered */
+    @media (min-width: 768px) {
+      main {
+        max-width: 600px;
+        margin: 0 auto;
+        justify-content: center;
+        min-height: 100vh;
+      }
+    }
+    #cropContainer {
+      position: relative;
+      width: 320px;
+      background: white;
+      padding: 0.5rem;
+      border-radius: 0.75rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
 
-.handle {
-  width: 14px;
-  height: 14px;
-  background: red;
-  position: absolute;
-}
+    #sourceImg {
+      width: 100%;
+      display: block;
+    }
 
-.tl { left:-7px; top:-7px; }
-.tr { right:-7px; top:-7px; }
-.bl { left:-7px; bottom:-7px; }
-.br { right:-7px; bottom:-7px; }
+    #cropBox {
+      position: absolute;
+      border: 2px solid red;
+      aspect-ratio: 35 / 45;
+      touch-action: none;
+    }
 
-/* PRINT AREA */
-#printArea {
-  display: grid;
-  grid-template-columns: repeat(6, 35mm);
-  gap: 0.5rem;
-  margin-top: 10px;
-}
+    .handle {
+      width: 14px;
+      height: 14px;
+      background: red;
+      position: absolute;
+    }
 
-.photo {
-  width: 35mm;
-  height: 45mm;
-  object-fit: cover;
-  border: 1px solid black;
-}
+    .tl {
+      left: -7px;
+      top: -7px;
+    }
 
-@media print {
-  @page { size: A4; margin: 0; }
-  body * { visibility: hidden; }
-  #printArea, #printArea * { visibility: visible; }
-  #printArea { position: absolute; top: 0; left: 0; }
-}
-</style>
+    .tr {
+      right: -7px;
+      top: -7px;
+    }
+
+    .bl {
+      left: -7px;
+      bottom: -7px;
+    }
+
+    .br {
+      right: -7px;
+      bottom: -7px;
+    }
+
+    /* PRINT AREA */
+    #printArea {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(35mm, 1fr));
+      gap: 0.2rem;
+      margin-top: 10px;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    @media (min-width: 768px) {
+      #printArea {
+        grid-template-columns: repeat(6, 35mm);
+      }
+    }
+
+    #upload {
+      margin-bottom: 10px;
+      font-size: 1rem;
+      padding: 1rem;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    .photo {
+      width: 35mm;
+      height: 45mm;
+      object-fit: cover;
+    }
+
+    input,
+    button {
+      font-size: 1rem;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      outline: none;
+      cursor: pointer;
+      border: none;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+      min-height: 44px;
+      min-width: 44px;
+    }
+
+    input:hover,
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+
+    input:active,
+    button:active {
+      transform: translateY(0);
+    }
+
+    /* Mobile button layout */
+    @media (max-width: 767px) {
+      input,
+      button {
+        width: 100%;
+        max-width: 320px;
+        margin-right: 0 !important;
+        margin-bottom: 0.5rem;
+      }
+    }
+
+    /* Desktop button layout */
+    @media (min-width: 768px) {
+      input,
+      button {
+        margin-right: 10px;
+      }
+    }
+
+    @media print {
+      @page {
+        size: A4;
+        margin: 0;
+      }
+
+      body * {
+        visibility: hidden;
+      }
+
+      #printArea,
+      #printArea * {
+        visibility: visible;
+      }
+
+      #printArea {
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: grid !important;
+        grid-template-columns: repeat(6, 35mm) !important;
+        gap: 0.4rem !important;
+        width: auto !important;
+        margin: 0 !important;
+        padding: 0.2rem !important;
+      }
+
+      .photo {
+        width: 35mm !important;
+        height: 45mm !important;
+        object-fit: cover !important;
+      }
+    }
+  </style>
 </head>
 
 <body>
 
-<input type="file" id="upload" accept="image/*"><br><br>
+  <main>
 
-<div id="cropContainer">
-  <img id="sourceImg">
-  <div id="cropBox">
-    <div class="handle tl"></div>
-    <div class="handle tr"></div>
-    <div class="handle bl"></div>
-    <div class="handle br"></div>
+  <input type="file" id="upload" accept="image/*"><br><br>
+
+  <div id="cropContainer">
+    <img id="sourceImg">
+    <div id="cropBox">
+      <div class="handle tl"></div>
+      <div class="handle tr"></div>
+      <div class="handle bl"></div>
+      <div class="handle br"></div>
+    </div>
   </div>
-</div>
 
-<br>
-<button id="generate">Generate</button>
-<button onclick="window.print()">Print</button>
+  <br>
+  <button id="generate">Generate</button>
+  <button onclick="window.print()">Print</button>
 
-<div id="printArea"></div>
+  <div id="printArea"></div>
 
-<script>
-const upload = document.getElementById("upload");
-const sourceImg = document.getElementById("sourceImg");
-const cropBox = document.getElementById("cropBox");
-const printArea = document.getElementById("printArea");
-const ratio = 35 / 45;
+  </main>
 
-let action = null, startX, startY, startW;
+  <script>
+    const upload = document.getElementById("upload");
+    const sourceImg = document.getElementById("sourceImg");
+    const cropBox = document.getElementById("cropBox");
+    const printArea = document.getElementById("printArea");
+    const ratio = 35 / 45;
 
-function getPoint(e){
-  return e.touches ? e.touches[0] : e;
-}
+    let action = null, startX, startY, startW;
 
-upload.onchange = () => {
-  sourceImg.src = URL.createObjectURL(upload.files[0]);
-  sourceImg.onload = () => {
-    cropBox.style.width = "120px";
-    cropBox.style.height = "155px";
-    cropBox.style.left = "100px";
-    cropBox.style.top = "30px";
-  };
-};
+    function getPoint(e) {
+      return e.touches ? e.touches[0] : e;
+    }
 
-/* MOVE */
-cropBox.addEventListener("mousedown", startMove);
-cropBox.addEventListener("touchstart", startMove);
+    upload.onchange = () => {
+      sourceImg.src = URL.createObjectURL(upload.files[0]);
+      sourceImg.onload = () => {
+        cropBox.style.width = "120px";
+        cropBox.style.height = "155px";
+        cropBox.style.left = "100px";
+        cropBox.style.top = "30px";
+      };
+    };
 
-function startMove(e){
-  if (e.target.classList.contains("handle")) return;
-  action = "move";
-  const p = getPoint(e);
-  startX = p.clientX;
-  startY = p.clientY;
-}
+    /* MOVE */
+    cropBox.addEventListener("mousedown", startMove);
+    cropBox.addEventListener("touchstart", startMove);
 
-/* RESIZE */
-document.querySelectorAll(".handle").forEach(h=>{
-  h.addEventListener("mousedown", e=>startResize(e,h));
-  h.addEventListener("touchstart", e=>startResize(e,h));
-});
+    function startMove(e) {
+      if (e.target.classList.contains("handle")) return;
+      action = "move";
+      const p = getPoint(e);
+      startX = p.clientX;
+      startY = p.clientY;
+    }
 
-function startResize(e,h){
-  e.stopPropagation();
-  action = "resize";
-  startW = cropBox.offsetWidth;
-  const p = getPoint(e);
-  startX = p.clientX;
-}
+    /* RESIZE */
+    document.querySelectorAll(".handle").forEach(h => {
+      h.addEventListener("mousedown", e => startResize(e, h));
+      h.addEventListener("touchstart", e => startResize(e, h));
+    });
 
-window.addEventListener("mousemove", move);
-window.addEventListener("touchmove", move);
+    function startResize(e, h) {
+      e.stopPropagation();
+      action = "resize";
+      startW = cropBox.offsetWidth;
+      const p = getPoint(e);
+      startX = p.clientX;
+    }
 
-function move(e){
-  if(!action) return;
-  const p = getPoint(e);
+    window.addEventListener("mousemove", move);
+    window.addEventListener("touchmove", move);
 
-  if(action==="move"){
-    cropBox.style.left = cropBox.offsetLeft + (p.clientX-startX) + "px";
-    cropBox.style.top = cropBox.offsetTop + (p.clientY-startY) + "px";
-    startX = p.clientX;
-    startY = p.clientY;
-  }
+    function move(e) {
+      if (!action) return;
+      const p = getPoint(e);
 
-  if(action==="resize"){
-    let newW = startW + (p.clientX-startX);
-    cropBox.style.width = newW + "px";
-    cropBox.style.height = newW / ratio + "px";
-  }
-}
+      if (action === "move") {
+        let newLeft = cropBox.offsetLeft + (p.clientX - startX);
+        let newTop = cropBox.offsetTop + (p.clientY - startY);
 
-window.addEventListener("mouseup", ()=>action=null);
-window.addEventListener("touchend", ()=>action=null);
+        // Constrain within image bounds
+        const maxLeft = sourceImg.offsetWidth - cropBox.offsetWidth;
+        const maxTop = sourceImg.offsetHeight - cropBox.offsetHeight;
 
-/* GENERATE */
-document.getElementById("generate").onclick = ()=>{
-  printArea.innerHTML = "";
+        newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+        newTop = Math.max(0, Math.min(newTop, maxTop));
 
-  const sx = sourceImg.naturalWidth / sourceImg.width;
-  const sy = sourceImg.naturalHeight / sourceImg.height;
+        cropBox.style.left = newLeft + "px";
+        cropBox.style.top = newTop + "px";
+        startX = p.clientX;
+        startY = p.clientY;
+      }
 
-  const x = cropBox.offsetLeft * sx;
-  const y = cropBox.offsetTop * sy;
-  const w = cropBox.offsetWidth * sx;
-  const h = cropBox.offsetHeight * sy;
+      if (action === "resize") {
+        let newW = startW + (p.clientX - startX);
+        
+        // Constrain minimum width
+        newW = Math.max(60, newW);
+        
+        // Constrain maximum width (fit within image)
+        const maxW = sourceImg.offsetWidth - cropBox.offsetLeft;
+        newW = Math.min(newW, maxW);
+        
+        // Check height constraint
+        const newH = newW / ratio;
+        const maxH = sourceImg.offsetHeight - cropBox.offsetTop;
+        if (newH > maxH) {
+          newW = maxH * ratio;
+        }
+        
+        cropBox.style.width = newW + "px";
+        cropBox.style.height = newW / ratio + "px";
+      }
+    }
 
-  const c = document.createElement("canvas");
-  c.width = 413;
-  c.height = 531;
-  c.getContext("2d").drawImage(sourceImg,x,y,w,h,0,0,413,531);
+    window.addEventListener("mouseup", () => action = null);
+    window.addEventListener("touchend", () => action = null);
 
-  for(let i=0;i<6;i++){
-    const img = document.createElement("img");
-    img.src = c.toDataURL("image/jpeg",1);
-    img.className="photo";
-    printArea.appendChild(img);
-  }
-};
-</script>
+    /* GENERATE */
+    document.getElementById("generate").onclick = () => {
+      printArea.innerHTML = "";
+
+      const sx = sourceImg.naturalWidth / sourceImg.width;
+      const sy = sourceImg.naturalHeight / sourceImg.height;
+
+      const x = cropBox.offsetLeft * sx;
+      const y = cropBox.offsetTop * sy;
+      const w = cropBox.offsetWidth * sx;
+      const h = cropBox.offsetHeight * sy;
+
+      const c = document.createElement("canvas");
+      c.width = 413;
+      c.height = 531;
+      c.getContext("2d").drawImage(sourceImg, x, y, w, h, 0, 0, 413, 531);
+
+      for (let i = 0; i < 6; i++) {
+        const img = document.createElement("img");
+        img.src = c.toDataURL("image/jpeg", 1);
+        img.className = "photo";
+        printArea.appendChild(img);
+      }
+    };
+  </script>
 
 </body>
+
 </html>
